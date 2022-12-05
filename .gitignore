@@ -1,1 +1,8 @@
 .DS_Store
+
+# going to not bother committing this
+Cargo.lock
+
+# Added by cargo
+
+/target
