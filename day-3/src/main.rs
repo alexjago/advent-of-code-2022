@@ -11,27 +11,40 @@ fn main() -> io::Result<()> {
         .map(|x| String::from(x.trim()))
         .collect();
 
-    let mut prioritysum = 0;
+    let mut prioritysum_a = 0;
+    let mut prioritysum_b = 0;
 
-    for line in lines {
+    for line in &lines {
         let n = line.len() / 2;
 
-        let mut left: BTreeSet<char> = BTreeSet::new();
-        let mut right: BTreeSet<char> = BTreeSet::new();
-
-        for x in line[0..n].chars() {
-            left.insert(x);
-        }
-        for x in line[n..line.len()].chars() {
-            right.insert(x);
-        }
+        let left: BTreeSet<char> = line[0..n].chars().collect();
+        let right: BTreeSet<char> = line[n..line.len()].chars().collect();
 
         let item = left.intersection(&right).next().unwrap_or(&' ');
 
-        prioritysum += priority(*item);
+        prioritysum_a += priority(*item);
     }
 
-    eprintln!("Part A: {prioritysum}");
+    eprintln!("Part A: {prioritysum_a}");
+
+
+    // For Part B we simply need the item contained in 3 consecutive sacks
+    for g in lines.chunks_exact(3) {
+
+        let a : BTreeSet<char> = g[0].chars().collect();
+        let b : BTreeSet<char> = g[1].chars().collect();
+        let c : BTreeSet<char> = g[2].chars().collect();
+
+        let ab : BTreeSet<char> = a.intersection(&b).map(|x| *x).collect();
+
+        let item = ab.intersection(&c).next().unwrap_or(&' ');
+
+        prioritysum_b += priority(*item);
+
+    }
+
+    eprintln!("Part B: {prioritysum_b}");
+
 
     Ok(())
 }
