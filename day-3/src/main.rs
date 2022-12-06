@@ -1,7 +1,4 @@
-use std::{
-    collections::BTreeSet,
-    io,
-};
+use std::{collections::BTreeSet, io};
 
 /// Stack rearrangement
 fn main() -> io::Result<()> {
@@ -27,24 +24,20 @@ fn main() -> io::Result<()> {
 
     eprintln!("Part A: {prioritysum_a}");
 
-
     // For Part B we simply need the item contained in 3 consecutive sacks
     for g in lines.chunks_exact(3) {
+        let a: BTreeSet<char> = g[0].chars().collect();
+        let b: BTreeSet<char> = g[1].chars().collect();
+        let c: BTreeSet<char> = g[2].chars().collect();
 
-        let a : BTreeSet<char> = g[0].chars().collect();
-        let b : BTreeSet<char> = g[1].chars().collect();
-        let c : BTreeSet<char> = g[2].chars().collect();
-
-        let ab : BTreeSet<char> = a.intersection(&b).map(|x| *x).collect();
+        let ab: BTreeSet<char> = a.intersection(&b).map(|x| *x).collect();
 
         let item = ab.intersection(&c).next().unwrap_or(&' ');
 
         prioritysum_b += priority(*item);
-
     }
 
     eprintln!("Part B: {prioritysum_b}");
-
 
     Ok(())
 }

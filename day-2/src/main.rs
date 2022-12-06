@@ -55,7 +55,7 @@ fn scores(play: &str) -> i32 {
         "R" => 1,
         "P" => 2,
         "S" => 3,
-        _   => 0,
+        _ => 0,
     }
 }
 
@@ -82,11 +82,11 @@ fn part_b(oppo: &str, game: &str) -> i32 {
             // need to lose
             // play whatever oppo would beat
             beats(oppo)
-        },
+        }
         "Y" => {
             // need to draw
             oppo
-        },
+        }
         _ => {
             // Need to win
             // play whatever oppo would lose to

@@ -48,22 +48,21 @@ fn main() -> io::Result<()> {
             }
 
             // Part B
-            let mut from = stacks_b.get_mut(&orig).unwrap();
+            let from = stacks_b.get_mut(&orig).unwrap();
             let mut moved = from.split_off(from.len() - qty);
             stacks_b.get_mut(&dest).unwrap().append(&mut moved);
         }
     }
 
-
     // need top (last) from each
     eprint!("Part A: ");
-    for (k, v) in stacks_a {
+    for (_, v) in stacks_a {
         eprint!("{}", v.back().unwrap_or(&String::from(" ")));
     }
     eprintln!();
 
     eprint!("Part B: ");
-    for (k, v) in stacks_b {
+    for (_, v) in stacks_b {
         eprint!("{}", v.back().unwrap_or(&String::from(" ")));
     }
     eprintln!();
