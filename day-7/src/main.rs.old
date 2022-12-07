@@ -1,0 +1,189 @@
+use std::collections::BTreeMap;
+/// AOC Day 7
+use std::{cell::RefCell, io::stdin, rc::Rc};
+
+/// We have a terminal session to read through
+/// From this we need to reconstruct a file tree
+
+// $ cd / : return cursor to top of tree
+// $ cd .. : go up one level in tree
+
+fn main() -> std::io::Result<()> {
+    // construct a tree
+
+    let mut rootdir = Node {
+        name: String::from("/"),
+        size: None,
+        contents: Some(BTreeMap::new()),
+    };
+
+    let mut curdir_path = vec![rootdir.name.clone()];
+
+    //
+    for lrez in stdin().lines() {
+        let llll = lrez.unwrap();
+        let line = llll.trim();
+
+        let what = parse_line(line);
+
+        eprintln!("{}\n{:?}", line, what);
+
+        match what {
+            LineType::cmd(c) => {
+                match c {
+                    Command::ls => {
+                        // Files listed by ls may need to be created in tree
+                    }
+                    Command::cd(l) => {
+                        match l {
+                            Location::Root => {
+                                curdir_path.clear();
+                                curdir_path.push(String::from("/"));
+                            }
+                            Location::Up => {
+                                let _ = curdir_path.pop();
+                            }
+                            Location::Down(f) => {
+                                // TODO we need to push to the path here actually
+                                // TODO ... and create the directory entry if it doesn't already exist
+
+                                let &mut pwd = trace_path(&curdir_path, &mut rootdir).unwrap().contents.as_ref().unwrap();
+
+                                pwd.entry(f.clone()).or_insert(Node {
+                                    name: f.clone(),
+                                    size: None,
+                                    contents: Some(BTreeMap::new()),
+                                });
+                                //
+                                curdir_path.push(f.clone())
+                            }
+                        }
+                    }
+                }
+            }
+            LineType::output(f) => {
+                // TODO refactor here in light of Location::Down actually doing something
+
+                // if f.borrow().size.is_none() {
+                //     curdir_path.push(f.clone());
+                // }
+                // let mut current = (curdir_path).last_mut().unwrap().borrow_mut();
+                // current.contents.push(f.clone());
+            }
+        }
+    }
+
+    for c in curdir_path {
+        eprint!("{:?} ... ", c);
+    }
+
+    // eprintln!("{:#?}", rootdir);
+
+    Ok(())
+}
+
+fn trace_path<'a>(path: &Vec<String>, root: &'a mut Node) -> Option<&'a Node> {
+    let mut t: &'a Node = root;
+    for c in path {
+        if c == "/" {
+            continue;
+        }
+        if let Some(m) = &t.contents {
+            if m.contains_key(c) {
+                t = m.get(c).unwrap();
+            } else {
+                // The path goes further than we actually have entries for?
+                return None;
+            }
+        } else {
+            return Some(t);
+        }
+    }
+    Some(t)
+}
+
+#[derive(Debug, Default)]
+struct Node {
+    name: FileName,
+    size: Option<usize>,
+    contents: Option<BTreeMap<FileName, Node>>,
+}
+
+type FileName = String;
+
+#[derive(Debug)]
+enum Location {
+    Root,
+    Up,
+    Down(FileName),
+}
+#[derive(Debug)]
+enum Command {
+    cd(Location),
+    ls,
+}
+
+#[derive(Debug)]
+enum LineType {
+    cmd(Command),
+    output(Node),
+}
+
+fn parse_line(input: &str) -> LineType {
+    if input.starts_with('$') {
+        return LineType::cmd(parse_command(input.strip_prefix("$ ").unwrap()));
+    } else {
+        return LineType::output(parse_file(input));
+    }
+}
+
+fn parse_file(input: &str) -> Node {
+    if input.starts_with("dir") {
+        return Node {
+            name: String::from(input.strip_prefix("dir ").unwrap()),
+            size: None,
+            contents: Some(BTreeMap::new()),
+        };
+    } else {
+        if let Some((sz, nm)) = input.split_once(' ') {
+            if let Ok(size) = sz.parse() {
+                return Node {
+                    name: String::from(nm),
+                    size: Some(size),
+                    contents: None,
+                };
+            }
+        }
+        panic!("This isn't supposed to happen")
+    }
+}
+
+fn parse_command(input: &str) -> Command {
+    if input.starts_with("cd") {
+        let location = input.strip_prefix("cd ").unwrap();
+        return match location {
+            "/" => Command::cd(Location::Root),
+            ".." => Command::cd(Location::Up),
+            _ => Command::cd(Location::Down(String::from(location))),
+        };
+    } else if input.starts_with("ls") {
+        return Command::ls;
+    }
+    panic!("This isn't supposed to happen!")
+}
+
+
+
+/*
+
+RETHINK
+
+Represent filesystem as
+
+    BTreeMap<Vec<String>, BTreeMap<FileName, usize>>
+
+Where Vec<String> is the dirname() component and the rest is (actual) file name : size.
+
+*/
+
+
