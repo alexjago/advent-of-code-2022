@@ -30,7 +30,7 @@ fn main() -> io::Result<()> {
         let b: BTreeSet<char> = g[1].chars().collect();
         let c: BTreeSet<char> = g[2].chars().collect();
 
-        let ab: BTreeSet<char> = a.intersection(&b).map(|x| *x).collect();
+        let ab: BTreeSet<char> = a.intersection(&b).copied().collect();
 
         let item = ab.intersection(&c).next().unwrap_or(&' ');
 

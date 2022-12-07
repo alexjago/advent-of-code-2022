@@ -18,19 +18,17 @@ fn main() -> io::Result<()> {
 
     for line in lines {
         // A somewhat fragile parse but it will do
-        if line.contains("[") {
+        if line.contains('[') {
             for (i, v) in line.chars().enumerate() {
-                if i % 4 == 1 {
-                    if !v.is_whitespace() {
-                        stacks_a
-                            .entry(i / 4 + 1)
-                            .or_default()
-                            .push_front(String::from(v));
-                        stacks_b
-                            .entry(i / 4 + 1)
-                            .or_default()
-                            .push_front(String::from(v));
-                    }
+                if i % 4 == 1 && !v.is_whitespace() {
+                    stacks_a
+                        .entry(i / 4 + 1)
+                        .or_default()
+                        .push_front(String::from(v));
+                    stacks_b
+                        .entry(i / 4 + 1)
+                        .or_default()
+                        .push_front(String::from(v));
                 }
             }
         } else if line.contains("move") {

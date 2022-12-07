@@ -15,6 +15,7 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 /// Both markers are a sequence of `n` distinct characters
 /// For the start-of-packet marker it's where the four most
 /// recently received characters were *all* different
@@ -30,7 +31,7 @@ fn find_marker_simple(input: &[char], window_size: usize) -> usize {
             return i + window_size;
         }
     }
-    return 0;
+    0
 }
 
 /// Both markers are a sequence of `n` distinct characters
@@ -72,5 +73,5 @@ fn find_marker(input: &[char], window_size: usize) -> usize {
         }
     }
 
-    return 0;
+    0
 }

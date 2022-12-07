@@ -23,7 +23,7 @@ fn main() -> io::Result<()> {
         }
 
         // Part B: range AB and CD overlap
-        if (a <= c && c <= b) || (c <= b && b <= d) || (a <= d && d <= b) || (c <= a && a <= d) {
+        if (b <= d || a <= c) && c <= b || (a <= d && d <= b) || (c <= a && a <= d) {
             total_b += 1
         }
     }
