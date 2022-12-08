@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 /// AOC Day 7
-use std::{cell::RefCell, io::stdin, rc::Rc};
 
 /// We have a terminal session to read through
 /// From this we need to reconstruct a file tree
