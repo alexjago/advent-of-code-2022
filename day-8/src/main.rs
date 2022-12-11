@@ -1,16 +1,22 @@
-use std::{io, collections::HashSet};
-
+use std::{collections::HashSet, io};
 
 fn main() -> io::Result<()> {
-    const RADIX : u32 = 10;
+    const RADIX: u32 = 10;
 
-    let grid : Vec<Vec<i8>> = io::stdin().lines().filter_map(|x| x.ok()).map(
-            |s| s.chars().filter_map(|n| n.to_digit(RADIX)).map(|n| n as i8).collect()
-        ).collect();
+    let grid: Vec<Vec<i8>> = io::stdin()
+        .lines()
+        .filter_map(|x| x.ok())
+        .map(|s| {
+            s.chars()
+                .filter_map(|n| n.to_digit(RADIX))
+                .map(|n| n as i8)
+                .collect()
+        })
+        .collect();
 
-    println!("Part A {}", part_a(&grid));        
+    println!("Part A {}", part_a(&grid));
 
-    println!("Part B {}", part_b(&grid));        
+    println!("Part B {}", part_b(&grid));
 
     Ok(())
 }
@@ -36,7 +42,7 @@ fn part_a(grid: &Vec<Vec<i8>>) -> usize {
     // Complexity: double-counting trees
     // Simple solution: use a HashSet
 
-    let mut tall_trees : HashSet<(usize, usize)> = HashSet::new();
+    let mut tall_trees: HashSet<(usize, usize)> = HashSet::new();
 
     let mut max_so_far;
 
@@ -48,7 +54,7 @@ fn part_a(grid: &Vec<Vec<i8>>) -> usize {
             if grid[row][col] > max_so_far {
                 tall_trees.insert((row, col));
                 max_so_far = grid[row][col];
-            }           
+            }
         }
     }
 
@@ -58,11 +64,11 @@ fn part_a(grid: &Vec<Vec<i8>>) -> usize {
         max_so_far = -1;
         for col in 1..width {
             // reversal
-            let col = width - col; 
+            let col = width - col;
             if grid[row][col] > max_so_far {
-                 tall_trees.insert((row, col));
+                tall_trees.insert((row, col));
                 max_so_far = grid[row][col];
-            }           
+            }
         }
     }
 
@@ -72,9 +78,9 @@ fn part_a(grid: &Vec<Vec<i8>>) -> usize {
         max_so_far = -1;
         for row in 0..height {
             if grid[row][col] > max_so_far {
-                 tall_trees.insert((row, col));
+                tall_trees.insert((row, col));
                 max_so_far = grid[row][col];
-            }           
+            }
         }
     }
 
@@ -85,19 +91,18 @@ fn part_a(grid: &Vec<Vec<i8>>) -> usize {
         for row in 1..height {
             let row = height - row;
             if grid[row][col] > max_so_far {
-                 tall_trees.insert((row, col));
+                tall_trees.insert((row, col));
                 max_so_far = grid[row][col];
-            }           
+            }
         }
     }
-    
+
     tall_trees.len()
 }
 
-
-/// Part B: 
+/// Part B:
 /// Content with the amount of tree cover available, the Elves just need to know the best spot to build their tree house: they would like to be able to see a lot of trees.
-/// To measure the viewing distance from a given tree, look up, down, left, and right from that tree; stop if you reach an edge or at the first tree that is the same height 
+/// To measure the viewing distance from a given tree, look up, down, left, and right from that tree; stop if you reach an edge or at the first tree that is the same height
 /// or taller than the tree under consideration. (If a tree is right on the edge, at least one of its viewing distances will be zero.)
 /// A tree's scenic score is found by multiplying together its viewing distance in each of the four directions. For this tree, this is 4 (found by multiplying 1 * 1 * 2 * 2).
 /// Question: what is the highest scenic score possible for any tree?
@@ -115,12 +120,12 @@ fn part_b(grid: &Vec<Vec<i8>>) -> usize {
 
     let mut max_score = 0;
 
-    for row in 1..(height-1) { 
-        for col in 1..(width-1) { 
+    for row in 1..(height - 1) {
+        for col in 1..(width - 1) {
             let this = grid[row][col];
             // eprintln!("row: {row} col: {col} this: {this}");
             let mut score = 1;
-            
+
             // South to North
             for d in 1..=row {
                 let r = row - d;
@@ -137,7 +142,7 @@ fn part_b(grid: &Vec<Vec<i8>>) -> usize {
                 let r = row + d;
                 let that = grid[r][col];
 
-                if that >= this || r == height-1 {
+                if that >= this || r == height - 1 {
                     // eprintln!("\tr: {r} col: {col} that: {that}");
                     score *= d;
                     break;
@@ -149,7 +154,7 @@ fn part_b(grid: &Vec<Vec<i8>>) -> usize {
                 let c = col - d;
                 let that = grid[row][c];
 
-                if that >= this  || c == 0 {
+                if that >= this || c == 0 {
                     // eprintln!("\trow: {row} c: {c} that: {that}");
                     score *= d;
                     break;
@@ -161,13 +166,12 @@ fn part_b(grid: &Vec<Vec<i8>>) -> usize {
                 let c = col + d;
                 let that = grid[row][c];
 
-                if that >= this || c == width-1 {
+                if that >= this || c == width - 1 {
                     // eprintln!("\trow: {row} c: {c} that: {that}");
                     score *= d;
                     break;
                 }
             }
-
 
             if score > max_score {
                 eprintln!("row: {row} col: {col} this: {this} score: {score}");
