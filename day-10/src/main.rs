@@ -5,13 +5,17 @@ use std::{collections::HashSet, io::Read};
 use anyhow::{bail, Result};
 
 fn main() -> Result<()> {
-    let input = {
-        let mut buf = String::new();
-        std::io::stdin().read_to_string(&mut buf)?;
-        buf
-    };
+    let input = trace_x_during(
+        &{
+            let mut buf = String::new();
+            std::io::stdin().read_to_string(&mut buf)?;
+            buf
+        },
+        1,
+    );
 
     println!("Part A: {}", part_a(&input));
+    println!("Part B:\n{}", part_b(&input, 40));
 
     Ok(())
 }
@@ -43,8 +47,8 @@ fn trace_x_during(input: &str, startval: isize) -> Vec<isize> {
 /// For part A we're told that X starts with the value 1
 /// and asked to get the value of it at cycles 20, 60, 100, 140, 180 and 220,
 /// multiplied by those values and summed
-fn part_a(input: &str) -> isize {
-    trace_x_during(input, 1)
+fn part_a(input: &[isize]) -> isize {
+    input
         .iter()
         .enumerate()
         .map(|(i, x)| (i + 1, x))
@@ -55,4 +59,26 @@ fn part_a(input: &str) -> isize {
         .map(|(i, x)| *x * (i as isize))
         // .inspect(|t| eprintln!("{t:?}"))
         .sum()
+}
+
+/// The sprite is 3 pixels wide, and the X register sets the horizontal position of the middle of that sprite.
+/// the CRT draws a single pixel during each cycle
+/// If the sprite is positioned such that one of its three pixels is the pixel currently being drawn,
+/// the screen produces a lit pixel (#); otherwise, the screen leaves the pixel dark (.).
+fn part_b(input: &[isize], width: usize) -> String {
+    let mut out = String::new();
+    for (i, x) in input.iter().enumerate() {
+        let col = (i % width) as isize;
+        // check that the current pixel is in the sprite
+        if x - 1 <= col && x + 1 >= col {
+            out.push('#')
+        } else {
+            out.push('.')
+        }
+        // new line where needed
+        if col == width as isize - 1 {
+            out.push('\n');
+        }
+    }
+    out
 }
