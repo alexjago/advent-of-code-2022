@@ -10,7 +10,7 @@ fn main() -> Result<()> {
     let moves = read_input()?;
 
     // 6243
-    println!("Part A: {}", part_a(&moves));
+    //println!("Part A: {}", part_a(&moves));
     println!("Part A with B: {}", part_b(&moves, 2));
     println!("Part B: {}", part_b(&moves, 10));
 
@@ -144,27 +144,31 @@ fn catch_up(head: &Position, tail: &Position) -> Result<Position> {
         // 2 left/right and either same column or 1 up/down
         // Either way we take the same Y to move diagonally if need be
         x_new = tail.x + x_diff.signum();
-        y_new = head.y 
+        y_new = head.y
     } else if y_diff.abs() > 1 {
         // transpose of other case
         x_new = head.x;
         y_new = tail.y + y_diff.signum();
-    } 
-    if x_diff.abs() > 2 || y_diff.abs() > 2 {
-        bail!("Error: head too far ahead of tail:\tHead: {:?}\tTail: {:?}", head, tail);
     }
-    Ok(Position{x: x_new, y: y_new})
+    if x_diff.abs() > 2 || y_diff.abs() > 2 {
+        bail!(
+            "Error: head too far ahead of tail:\tHead: {:?}\tTail: {:?}",
+            head,
+            tail
+        );
+    }
+    Ok(Position { x: x_new, y: y_new })
 }
 
-/// Rather than two knots, you now must simulate a rope consisting of ten knots. 
-/// One knot is still the head of the rope and moves according to the series of motions. 
+/// Rather than two knots, you now must simulate a rope consisting of ten knots.
+/// One knot is still the head of the rope and moves according to the series of motions.
 /// Each knot further down the rope follows the knot in front of it using the same rules as before.
 // 2594: too low; 2622: also too low; 2649: too high
 fn part_b(moves: &Vec<Move>, knot_count: usize) -> usize {
     let mut tail_positions: HashSet<Position> = HashSet::new();
-    let mut knots = vec![Position {x: 0, y: 0}; knot_count.max(2)];
+    let mut knots = vec![Position { x: 0, y: 0 }; knot_count.max(2)];
 
-    tail_positions.insert(knots[knots.len()-1]);
+    tail_positions.insert(knots[knots.len() - 1]);
 
     for (i, m) in moves.iter().enumerate() {
         for _ in 0..m.dist.abs() {
@@ -180,7 +184,7 @@ fn part_b(moves: &Vec<Move>, knot_count: usize) -> usize {
             // Iterate over remaining knots to propagate change
             for k in 1..knots.len() {
                 let old = knots[k].clone();
-                let rez = catch_up(&knots[k-1], &knots[k]);
+                let rez = catch_up(&knots[k - 1], &knots[k]);
                 if let Ok(new) = rez {
                     knots[k] = new;
                     if knots[k] == old {
@@ -197,7 +201,7 @@ fn part_b(moves: &Vec<Move>, knot_count: usize) -> usize {
                     rez.unwrap();
                 }
             }
-            tail_positions.insert(knots[knots.len()-1]);
+            tail_positions.insert(knots[knots.len() - 1]);
         }
         // eprintln!("Input: {i}; Knots:");
         // for knot in &knots {
@@ -205,11 +209,11 @@ fn part_b(moves: &Vec<Move>, knot_count: usize) -> usize {
         // }
         // eprintln!("");
     }
-    // visualise_positions(&tail_positions);
+    visualise_positions(&tail_positions);
     tail_positions.len()
 }
 
-fn visualise_positions(grid: &HashSet<Position>){
+fn visualise_positions(grid: &HashSet<Position>) {
     let x_max = grid.iter().map(|p| p.x).max().unwrap_or_default();
     let x_min = grid.iter().map(|p| p.x).min().unwrap_or_default();
     let y_max = grid.iter().map(|p| p.y).max().unwrap_or_default();
@@ -222,7 +226,7 @@ fn visualise_positions(grid: &HashSet<Position>){
         for x in x_min..=x_max {
             if x == 0 && y == 0 {
                 eprint!("s");
-            } else if grid.contains(&Position {x: x, y: y}) {
+            } else if grid.contains(&Position { x: x, y: y }) {
                 eprint!("#");
             } else {
                 eprint!(".");
