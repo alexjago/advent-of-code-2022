@@ -1,11 +1,11 @@
 use anyhow::{bail, Result};
 use itertools::Itertools;
-use serde::Deserialize;
 use std::cmp::Ordering;
 
 fn main() -> Result<()> {
     let input = construct_part_a_input()?;
     println!("Part A: {}", part_a(&input));
+    println!("Part B: {}", part_b(input));
     Ok(())
 }
 
@@ -20,8 +20,8 @@ fn construct_part_a_input() -> Result<Vec<(Value, Value)>> {
         if let Some((l, r)) = chunk.collect_tuple() {
             let left = parse_value(&l)?.0;
             let right = parse_value(&r)?.0;
-            eprintln!("L: {l}   =>   {left:?}");
-            eprintln!("R: {r}   =>   {right:?}");
+            // eprintln!("L: {l}   =>   {left:?}");
+            // eprintln!("R: {r}   =>   {right:?}");
             out.push((left, right))
         } else {
             bail!("weirdness!")
@@ -92,7 +92,7 @@ fn parse_value(input: &str) -> Result<(Value, usize)> {
     Ok((out, i))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug)]
 enum Value {
     Integer(isize),
     List(Vec<Value>),
@@ -148,22 +148,53 @@ fn part_a(input: &[(Value, Value)]) -> usize {
     input
         .iter()
         .map(|(left, right)| left.cmp(right))
-        .inspect(|c| eprintln!("{c:?}"))
+        // .inspect(|c| eprintln!("{c:?}"))
         .enumerate()
         .map(|(i, c)| match c {
             Less | Equal => i+1,
             Greater => 0,
         })
-        .inspect(|c| eprintln!("{c:?}"))
+        // .inspect(|c| eprintln!("{c:?}"))
 
         .sum()
+}
+
+
+fn part_b(input: Vec<(Value, Value)>) -> usize {
+    // read input
+    let mut out: Vec<Value>   = Vec::new();
+
+    for (l, r) in input {
+        out.push(l);
+        out.push(r);
+    }
+
+    // divider packets
+    use Value::*;
+    let two = List(vec![List(vec![Integer(2)])]);
+    let six = List(vec![List(vec![Integer(6)])]);
+    out.push(two.clone());
+    out.push(six.clone());
+
+    out.sort();
+
+    // eprintln!("Part B");
+
+    out.iter().enumerate()
+    .map(|(i, v)| (i+1, v))
+    // .inspect(|(i, v)| eprintln!("{i}: {v:?}"))
+    .filter(|(_, v)| v == &&two || v == &&six)
+    // .inspect(|_| eprintln!("^^^^^^^^^^"))
+    .map(|(i, v)| i)
+    .reduce(|acc, i| acc*i)
+    .unwrap_or(0)
 }
 
 
 mod test {
     use super::*;
     use std::cmp::Ordering::*;
-//    #[test]
+    #[test]
     fn normal_lists() -> Result<()> {
         let left = parse_value("[1,1,3,1,1]")?.0;
         let right = parse_value("[1,1,5,1,1]")?.0;
