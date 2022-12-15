@@ -212,9 +212,9 @@ fn part_b(input: &HashMap<Point, Point>, limits: [isize; 4]) -> isize {
             // Only a single exclusion range, but there might be something on its edge
             let (l, r) = coal[0];
             if l > xmin {
-                return l - 1;
+                return (l - 1) * 4_000_000 + row;
             } else if r < xmax {
-                return r + 1;
+                return (r + 1) * 4_000_000 + row;
             }
         } else {
             for w in coal[..].windows(2) {
