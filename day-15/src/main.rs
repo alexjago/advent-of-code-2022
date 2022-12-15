@@ -204,11 +204,25 @@ fn part_b(input: &HashMap<Point, Point>, limits: [isize; 4]) -> isize {
         //     eprint!(".");
         // }
         let coal = sweep_row(&dists, row);
-        for w in coal[..].windows(2) {
-            if let &[left, right] = w {
-                if left.0 > xmin || left.1 <= xmax && right.0 > left.1 + 1 {
-                    // eprintln!("({}, {})", left.1 + 1, row);
-                    return (left.1 + 1) * 4_000_000 + row;
+        if coal.len() == 0 {
+            // there's... no exclusion zone for this row, so
+            // x=0 should be avail
+            return row;
+        } else if coal.len() == 1 {
+            // Only a single exclusion range, but there might be something on its edge
+            let (l, r) = coal[0];
+            if l > xmin {
+                return l - 1;
+            } else if r < xmax {
+                return r + 1;
+            }
+        } else {
+            for w in coal[..].windows(2) {
+                if let &[left, right] = w {
+                    if left.0 > xmin || left.1 <= xmax && right.0 > left.1 + 1 {
+                        // eprintln!("({}, {})", left.1 + 1, row);
+                        return (left.1 + 1) * 4_000_000 + row;
+                    }
                 }
             }
         }
