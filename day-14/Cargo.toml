@@ -1,5 +1,5 @@
 [package]
-name = "day-13"
+name = "day-14"
 version = "0.2.0"
 edition = "2021"
 
@@ -7,6 +7,3 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.66"
-itertools = "0.10.5"
-ron = "0.8.0"
-serde = {version = "1.0.150", features = ['derive']}
