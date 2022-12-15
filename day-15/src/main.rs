@@ -9,7 +9,9 @@ fn main() -> Result<()> {
 
     // draw_grid(&input);
 
-    println!("Part A: {}", part_a(&input, 2000000)); // 2000000
+    println!("Part A: {}", part_a(&input, 2000_000)); // 2_000_000
+    println!("Part B: {}", part_b(&input, [0, 4000000, 0, 4000000])); //
+     
 
     Ok(())
 }
@@ -123,6 +125,22 @@ fn part_a(input: &HashMap<Point, Point>, row: isize) -> usize {
 
     eprintln!("{dists:?}");
 
+    let coalesced = sweep_row(&dists, row);
+
+    // eprintln!("{coalesced:?}");
+
+    let blocks: usize = coalesced.iter().map(|(l, r)| 1 + r.abs_diff(*l)).inspect(|x| eprint!("{x}\t\t")).sum::<usize>();
+    eprintln!("");
+    let bcns = dbg!(beacons(&input)).iter().filter(|p| p.y == row).count();
+
+    dbg!(blocks) - dbg!(bcns)
+}
+
+
+/// Sweep-line algorithm
+/// <https://en.wikipedia.org/wiki/Sweep_line_algorithm>
+/// We'll take a Y coordinate and calculate the bounding points of exclusion zones
+fn sweep_row(dists: &HashMap<Point, isize>, row: isize) -> Vec<(isize, isize)> {
     // for each point, we want to get the left and right bounds (if any) of the excluded part of the row
     let mut exclusions: Vec<(isize, isize)> = dists
         .iter()
@@ -138,10 +156,10 @@ fn part_a(input: &HashMap<Point, Point>, row: isize) -> usize {
 
     exclusions.sort();
 
-    eprintln!("{exclusions:?}");
+    // eprintln!("{exclusions:?}");
 
     if exclusions.is_empty() {
-        return 0;
+        return vec![];
     }
 
     // now we need to deduplicate the exclusion zones...
@@ -162,15 +180,35 @@ fn part_a(input: &HashMap<Point, Point>, row: isize) -> usize {
             coalesced.push((p, q));
             coalesced.push((*l, *r));
         }
-        eprintln!("{coalesced:?}");
+        // eprintln!("{coalesced:?}");
     }
-
-    // eprintln!("{coalesced:?}");
-
-    let blocks: usize = coalesced.iter().map(|(l, r)| 1 + r.abs_diff(*l)).inspect(|x| eprint!("{x}\t\t")).sum::<usize>();
-    eprintln!("");
-    let bcns = dbg!(beacons(&input)).iter().filter(|p| p.y == row).count();
-
-    dbg!(blocks) - dbg!(bcns)
+    coalesced
 }
 
+/// Distress beacon somewhere in (0..=4000000, 0..=4000000)
+/// Tuning frequency = x*4000000 + y
+/// we need to take sensor_dists and the above information
+/// to pick the one coordinate in ~16 trillion
+/// the sweep-line solution is to extend (a) line by line
+/// and then presumably at least one line will have a gap
+/// Suppose we take all the exclusion zones and add them in 2D
+/// then there should be a hole somewhere in it  
+fn part_b(input: &HashMap<Point, Point>, limits: [isize; 4]) -> isize {
+    // sweep row...
+    let dists = sensor_dist(input);
+    let [xmin, xmax, ymin, ymax] = limits;
+    for row in ymin..=ymax {
+        if row % (ymax-ymin)/100 == 0 {
+            eprint!(".");
+        }
+        let coal = sweep_row(&dists, row);
+        for w in coal[..].windows(2) {
+            if let &[left, right] = w {
+                if left.0 > xmin || left.1 <= xmax && right.0 > left.1 + 1 {
+                    return (left.1 + 1)*4_000_000 + row;
+                }
+            }
+        }
+    }
+    return -1;
+}
