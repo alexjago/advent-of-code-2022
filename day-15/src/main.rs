@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use anyhow::{anyhow, Context, Result};
-use itertools::{Chunks, Itertools, Tuples};
+use itertools::Itertools;
 use regex::Regex;
 
 fn main() -> Result<()> {
@@ -9,9 +9,8 @@ fn main() -> Result<()> {
 
     // draw_grid(&input);
 
-    println!("Part A: {}", part_a(&input, 2000_000)); // 2_000_000
-    println!("Part B: {}", part_b(&input, [0, 4000000, 0, 4000000])); //
-     
+    println!("Part A: {}", part_a(&input, 2_000_000)); // 2_000_000
+    println!("Part B: {}", part_b(&input, [0, 4000000, 0, 4000000]));
 
     Ok(())
 }
@@ -24,7 +23,7 @@ struct Point {
 
 impl Point {
     /// Manhattan distance
-    fn manhattan_dist(self: &Self, other: &Point) -> isize {
+    fn manhattan_dist(&self, other: &Point) -> isize {
         self.x.abs_diff(other.x) as isize + self.y.abs_diff(other.y) as isize
     }
 }
@@ -39,7 +38,7 @@ fn parse_input() -> Result<HashMap<Point, Point>> {
             .context(anyhow!("Unexpected line in input: {}", &line))?
             .iter()
             .skip(1)
-            .filter_map(|x| x)
+            .flatten()
             .filter_map(|x| x.as_str().parse::<isize>().ok())
             .tuples()
             .map(|(x, y)| Point { x, y })
@@ -56,8 +55,8 @@ fn draw_grid(input: &HashMap<Point, Point>) {
     let y_max = input.iter().map(|(a, b)| a.y.max(b.y)).max().unwrap_or(0);
     let y_min = input.iter().map(|(a, b)| a.y.min(b.y)).min().unwrap_or(0);
 
-    let sensors = sensor_dist(&input);
-    let beacons = beacons(&input);
+    let sensors = sensor_dist(input);
+    let beacons = beacons(input);
 
     print!("    ");
     for x in x_min..=x_max {
@@ -117,25 +116,28 @@ fn sensor_dist(input: &HashMap<Point, Point>) -> HashMap<Point, isize> {
 }
 
 fn beacons(input: &HashMap<Point, Point>) -> HashSet<Point> {
-    input.values().map(|s| *s).collect()
+    input.values().copied().collect()
 }
 
 fn part_a(input: &HashMap<Point, Point>, row: isize) -> usize {
     let dists = sensor_dist(input);
 
-    eprintln!("{dists:?}");
+    // eprintln!("{dists:?}");
 
     let coalesced = sweep_row(&dists, row);
 
     // eprintln!("{coalesced:?}");
 
-    let blocks: usize = coalesced.iter().map(|(l, r)| 1 + r.abs_diff(*l)).inspect(|x| eprint!("{x}\t\t")).sum::<usize>();
-    eprintln!("");
-    let bcns = dbg!(beacons(&input)).iter().filter(|p| p.y == row).count();
+    let blocks: usize = coalesced
+        .iter()
+        .map(|(l, r)| 1 + r.abs_diff(*l))
+        // .inspect(|x| eprint!("{x}\t\t"))
+        .sum::<usize>();
+    // eprintln!();
+    let bcns = beacons(input).iter().filter(|p| p.y == row).count();
 
-    dbg!(blocks) - dbg!(bcns)
+    blocks - bcns
 }
-
 
 /// Sweep-line algorithm
 /// <https://en.wikipedia.org/wiki/Sweep_line_algorithm>
@@ -198,17 +200,18 @@ fn part_b(input: &HashMap<Point, Point>, limits: [isize; 4]) -> isize {
     let dists = sensor_dist(input);
     let [xmin, xmax, ymin, ymax] = limits;
     for row in ymin..=ymax {
-        if row % (ymax-ymin)/100 == 0 {
-            eprint!(".");
-        }
+        // if row % (ymax - ymin) / 100 == 0 {
+        //     eprint!(".");
+        // }
         let coal = sweep_row(&dists, row);
         for w in coal[..].windows(2) {
             if let &[left, right] = w {
                 if left.0 > xmin || left.1 <= xmax && right.0 > left.1 + 1 {
-                    return (left.1 + 1)*4_000_000 + row;
+                    // eprintln!("({}, {})", left.1 + 1, row);
+                    return (left.1 + 1) * 4_000_000 + row;
                 }
             }
         }
     }
-    return -1;
+    -1
 }
