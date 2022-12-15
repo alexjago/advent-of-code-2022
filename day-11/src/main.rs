@@ -37,7 +37,6 @@ fn parse_input(input: &str) -> (Vec<Monkey>, isize) {
             } else if let Some(oppy) = line.strip_prefix("Operation: new = old ") {
                 let (op, val_s) = oppy.split_once(' ').unwrap();
                 // eprintln!("op: {op}\t val_s: {val_s}");
-                // TODO: handle non-const operand e.g. `old * old`
                 if let Ok(val) = val_s.parse::<isize>() {
                     operation = match op {
                         "+" => Box::from(move |x| x + val),
@@ -45,7 +44,6 @@ fn parse_input(input: &str) -> (Vec<Monkey>, isize) {
                         _ => todo!(),
                     }
                 } else {
-                    // TODO check this but assume old + old or old - old
                     operation = match op {
                         "+" => Box::from(|x| x + x),
                         "*" => Box::from(|x| x * x),
@@ -83,24 +81,14 @@ struct Monkey<'a> {
     test: Box<dyn Fn(isize) -> usize + 'a>,
 }
 
-impl<'a> Monkey<'a> {
-    fn new() -> Self {
-        Self {
-            items: VecDeque::new(),
-            operation: Box::new(|x| x),
-            test: Box::new(|x| 0),
-        }
-    }
-}
-
 fn part_a(input: &str, rounds: usize) -> usize {
     let mut monkeys = parse_input(input).0;
     let mc = monkeys.len();
 
     let mut counts = vec![0_usize; mc];
 
-    for roundn in 1..=rounds {
-        // eprintln!("Round {roundn}");
+    for _roundn in 1..=rounds {
+        // eprintln!("Round {_roundn}");
         for k in 0..mc {
             let mut throws: Vec<(usize, isize)> = Vec::new();
             {
@@ -143,8 +131,8 @@ fn part_b(input: &str, rounds: usize) -> usize {
 
     let mut counts = vec![0_usize; mc];
 
-    for roundn in 1..=rounds {
-        // eprintln!("Round {roundn}");
+    for _roundn in 1..=rounds {
+        // eprintln!("Round {_roundn}");
         for k in 0..mc {
             let mut throws: Vec<(usize, isize)> = Vec::new();
             {
@@ -167,8 +155,8 @@ fn part_b(input: &str, rounds: usize) -> usize {
                 }
             }
         }
-        // if roundn == 20 || roundn % 1000 == 0 {
-        //     eprintln!("Round {roundn}");
+        // if _roundn == 20 || _roundn % 1000 == 0 {
+        //     eprintln!("Round {_roundn}");
         //     for (i, c) in counts.iter().enumerate() {
         //         eprintln!("\tMonkey {i} inspected items {c} times.");
         //     }

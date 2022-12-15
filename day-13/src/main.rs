@@ -151,18 +151,16 @@ fn part_a(input: &[(Value, Value)]) -> usize {
         // .inspect(|c| eprintln!("{c:?}"))
         .enumerate()
         .map(|(i, c)| match c {
-            Less | Equal => i+1,
+            Less | Equal => i + 1,
             Greater => 0,
         })
         // .inspect(|c| eprintln!("{c:?}"))
-
         .sum()
 }
 
-
 fn part_b(input: Vec<(Value, Value)>) -> usize {
     // read input
-    let mut out: Vec<Value>   = Vec::new();
+    let mut out: Vec<Value> = Vec::new();
 
     for (l, r) in input {
         out.push(l);
@@ -180,17 +178,18 @@ fn part_b(input: Vec<(Value, Value)>) -> usize {
 
     // eprintln!("Part B");
 
-    out.iter().enumerate()
-    .map(|(i, v)| (i+1, v))
-    // .inspect(|(i, v)| eprintln!("{i}: {v:?}"))
-    .filter(|(_, v)| v == &&two || v == &&six)
-    // .inspect(|_| eprintln!("^^^^^^^^^^"))
-    .map(|(i, v)| i)
-    .reduce(|acc, i| acc*i)
-    .unwrap_or(0)
+    out.iter()
+        .enumerate()
+        .map(|(i, v)| (i + 1, v))
+        // .inspect(|(i, v)| eprintln!("{i}: {v:?}"))
+        .filter(|(_, v)| v == &&two || v == &&six)
+        // .inspect(|_| eprintln!("^^^^^^^^^^"))
+        .map(|(i, _)| i)
+        .reduce(|acc, i| acc * i)
+        .unwrap_or(0)
 }
 
-
+#[cfg(test)]
 mod test {
     use super::*;
     use std::cmp::Ordering::*;
@@ -207,8 +206,6 @@ mod test {
         let left = parse_value("[[1],[2,3,4]]")?.0;
         let right = parse_value("[[1], 4]")?.0;
         assert!(left.cmp(&right) == Less);
-        Ok(()) 
+        Ok(())
     }
-
-
 }

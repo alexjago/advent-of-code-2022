@@ -1,8 +1,8 @@
 //! AOC Day 10: basic CPU simulation
 
-use std::{collections::HashSet, io::Read};
+use std::io::Read;
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 
 fn main() -> Result<()> {
     let input = trace_x_during(
