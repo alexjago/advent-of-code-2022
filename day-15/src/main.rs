@@ -205,21 +205,29 @@ fn part_b(input: &HashMap<Point, Point>, limits: [isize; 4]) -> isize {
         // }
         let coal = sweep_row(&dists, row);
         if coal.len() == 0 {
-            // there's... no exclusion zone for this row, so
+            // There's... no exclusion zone for this row, so
             // x=0 should be avail
             return row;
-        } else if coal.len() == 1 {
-            // Only a single exclusion range, but there might be something on its edge
-            let (l, r) = coal[0];
+        } 
+        if coal.len() > 0 {
+            // Test for edge cases: is the 
+            // leftmost or rightmost coordinate in-bounds?
+            let l = coal.first().unwrap().0;
             if l > xmin {
                 return (l - 1) * 4_000_000 + row;
-            } else if r < xmax {
+            }
+            let r = coal.last().unwrap().1;
+            if r < xmax {
                 return (r + 1) * 4_000_000 + row;
             }
-        } else {
+        }
+        if coal.len() > 1 {
+            // Test for gaps between exclusion zones
             for w in coal[..].windows(2) {
+                // Iterate over 2-windows for convenience really
                 if let &[left, right] = w {
-                    if left.0 > xmin || left.1 <= xmax && right.0 > left.1 + 1 {
+                    if left.1 >= xmin && left.1 < xmax && right.0 > left.1 + 1 {
+                        // There's a gap between our two ranges at `left.1 + 1`
                         // eprintln!("({}, {})", left.1 + 1, row);
                         return (left.1 + 1) * 4_000_000 + row;
                     }
