@@ -49,6 +49,7 @@ fn parse_input() -> Result<HashMap<Point, Point>> {
     Ok(out)
 }
 
+#[allow(dead_code)]
 fn draw_grid(input: &HashMap<Point, Point>) {
     let x_max = input.iter().map(|(a, b)| a.x.max(b.x)).max().unwrap_or(0);
     let x_min = input.iter().map(|(a, b)| a.x.min(b.x)).min().unwrap_or(0);
