@@ -6,6 +6,7 @@ use regex::Regex;
 static mut RECURSE_COUNT: usize = 0_usize;
 static mut CACHE_HITS: usize = 0_usize;
 const MAX_DEPTH: usize = 30;
+const TEACH: usize = 4;
 
 fn main() -> Result<()> {
     let input = parse_input()?;
@@ -28,14 +29,28 @@ fn main() -> Result<()> {
 
     let (rez, seq) = part_a(&input, MAX_DEPTH);
     println!("\nPart A: {}", rez);
-    seq.iter().for_each(|(s, t, h)| eprintln!("{s} {h} @{t}"));
+    seq.iter().for_each(|(s, t, h)| eprintln!("{s}\t{h}\t@{t}"));
     // 3941 too high; 1666 too low
     unsafe {
         println!(
             "recursed {RECURSE_COUNT} times with {CACHE_HITS} cache hits; max depth of {MAX_DEPTH}"
         )
     };
-    // println!("Part B: {}", part_b());
+
+    unsafe {
+        RECURSE_COUNT = 0;
+    }
+    let (rez, seq) = part_b(&input, MAX_DEPTH - TEACH);
+    println!("Part B: {}", rez);
+
+    seq.iter()
+        .for_each(|(s, t, h)| eprintln!("{s}\t{}|{}\t@{}|{}", h[0], h[1], t[0], t[1]));
+    unsafe {
+        println!(
+            "recursed {RECURSE_COUNT} times with {CACHE_HITS} cache hits; max depth of {}",
+            MAX_DEPTH - TEACH
+        )
+    };
 
     Ok(())
 }
@@ -253,9 +268,28 @@ fn is_active(order: &BTreeMap<Position, usize>, position: Position, existing: Ac
     (existing & 1 << idx) != 0
 }
 
-#[allow(dead_code)]
-fn part_b() -> usize {
-    todo!()
+type MemoB = BTreeMap<(Activated, [Position; 2], [usize; 2]), usize>;
+
+fn part_b(
+    input: &BTreeMap<Position, Valve>,
+    time: usize,
+) -> (usize, Vec<(usize, [usize; 2], [Position; 2])>) {
+    let mut memo = MemoB::new();
+    let start = "AA".into();
+    let positions = [start, start];
+    let order = make_order(input);
+    let dists = calc_pairs(input, &order, start);
+    let activated = 0;
+    solve_twoplayer(
+        input,
+        &order,
+        &dists,
+        activated,
+        positions,
+        start,
+        [time, time],
+        &mut memo,
+    )
 }
 
 /// Calculate shortest distances between pairs of
@@ -325,3 +359,122 @@ fn calc_pairs(
         CC +
 
 */
+
+/* Part B extension: which *2* actions are optimal? */
+
+/// There is now more than one player opening valves!
+fn solve_twoplayer(
+    input: &BTreeMap<Position, Valve>,
+    order: &BTreeMap<Position, usize>,
+    dists: &BTreeMap<(Position, Position), usize>,
+    activated: Activated,
+    positions: [Position; 2],
+    start: Position,
+    time: [usize; 2],
+    memo: &mut MemoB,
+) -> (usize, Vec<(usize, [usize; 2], [Position; 2])>) {
+    // Memoization results
+    /*
+    if let Some(score) = memo.get(&(activated, positions, time)) {
+        unsafe { CACHE_HITS += 1 }
+        return (*score, vec![]);
+    }
+    */
+    /*
+        OK but what's the actual procedure here?
+        need combined human and elephant best
+        which means the times can diverge?
+        oh so time also has to be a vector
+
+        ugh, that changes a BUNCH of assumptions
+
+    */
+
+    let mut new_viz = activated;
+
+    let human_pos = positions[0];
+    let elephant_pos = positions[1];
+
+    let human_time = time[0];
+    let elephant_time = time[1];
+
+    new_viz = activate(order, human_pos, new_viz);
+    new_viz = activate(order, elephant_pos, new_viz);
+
+    let mut max_score_total = 0;
+    let mut winners = [Position { id: u16::MAX }; 2];
+    let mut histories = vec![];
+
+    let human_options = dists.iter().filter_map(|((f, t), d)| {
+        if *f == human_pos
+            && *t != human_pos
+            && (*t == start || !is_active(order, *t, new_viz))
+            && *d < human_time
+        {
+            Some((*t, d))
+        } else {
+            None
+        }
+    });
+
+    for ho in human_options {
+        let human_fudge = if ho.0 == start { 0 } else { 1 };
+        let human_tap_score =
+            input.get(&ho.0).unwrap().rate * (human_time.saturating_sub(human_fudge + ho.1));
+
+        let elephant_options = dists.iter().filter_map(|((f, t), d)| {
+            if *f == elephant_pos
+                && *t != elephant_pos
+                && *t != ho.0
+                && (*t == start || !is_active(order, *t, new_viz))
+                && *d < elephant_time
+            {
+                Some((*t, d))
+            } else {
+                None
+            }
+        });
+
+        for eo in elephant_options {
+            let elephant_fudge = if eo.0 == start { 0 } else { 1 };
+            let elephant_tap_score = input.get(&eo.0).unwrap().rate
+                * (elephant_time.saturating_sub(elephant_fudge + eo.1));
+
+            let (rez, seq) =
+                if human_time > *ho.1 + human_fudge || elephant_time > *eo.1 + elephant_fudge {
+                    solve_twoplayer(
+                        input,
+                        order,
+                        dists,
+                        new_viz,
+                        [ho.0, eo.0],
+                        start,
+                        [
+                            human_time.saturating_sub(ho.1 + human_fudge),
+                            elephant_time.saturating_sub(eo.1 + elephant_fudge),
+                        ],
+                        memo,
+                    )
+                } else {
+                    (0, vec![])
+                };
+            if rez + human_tap_score + elephant_tap_score > max_score_total {
+                max_score_total = rez + human_tap_score + elephant_tap_score;
+                winners = [ho.0, eo.0];
+                histories = seq;
+            }
+        }
+    }
+
+    histories.push((max_score_total, time, winners));
+    // eprint!("{time}:{s}:{winner}  ");
+    // SAFETY: single threaded
+    unsafe {
+        RECURSE_COUNT += 1;
+        if RECURSE_COUNT % 1_000_000 == 0 {
+            eprint!(".");
+        }
+    };
+    //memo.insert((new_viz, winners, time), max_score_total);
+    (max_score_total, histories)
+}
