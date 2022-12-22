@@ -1,0 +1,12 @@
+[package]
+name = "day-19"
+version = "0.2.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.68"
+itertools = "0.10.5"
+michie = "3.0.0"
+regex = "1.7.0"
